@@ -2,6 +2,8 @@
 
 # Copyright 2017 Johns Hopkins University (Shinji Watanabe)
 #  Apache 2.0  (http://www.apache.org/licenses/LICENSE-2.0)
+# Modified by Qiujia Li for DNC
+
 all_args="$@"
 . ./path.sh || exit 1;
 . ./cmd.sh || exit 1;
