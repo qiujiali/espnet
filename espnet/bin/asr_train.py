@@ -177,6 +177,8 @@ def get_parser():
                         help='Number of processes of iterator')
     parser.add_argument('--preprocess-conf', type=str, default=None, nargs='?',
                         help='The configuration file for the pre-processing')
+    parser.add_argument('--train-sample-rate', type=float, default=1.0,
+                        help='training set sample rate')
     # optimization related
     parser.add_argument('--opt', default='adadelta', type=str,
                         choices=['adadelta', 'adam', 'noam'],

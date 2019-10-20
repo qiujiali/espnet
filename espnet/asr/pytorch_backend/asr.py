@@ -408,7 +408,8 @@ def train(args):
                           batch_frames_in=args.batch_frames_in,
                           batch_frames_out=args.batch_frames_out,
                           batch_frames_inout=args.batch_frames_inout)
-    valid = make_batchset(valid_json, args.batch_size,
+    valid_batch_size = args.batch_size * args.train_sample_rate
+    valid = make_batchset(valid_json, valid_batch_size,
                           args.maxlen_in, args.maxlen_out, args.minibatches,
                           min_batch_size=args.ngpu if args.ngpu > 1 else 1,
                           count=args.batch_count,
@@ -419,7 +420,7 @@ def train(args):
 
     load_tr = LoadInputsAndTargets(
         mode='asr', load_output=True, preprocess_conf=args.preprocess_conf,
-        rotate=args.rotate, normalise=args.normalise,
+        rotate=args.rotate, normalise=args.normalise, sample_rate=args.train_sample_rate,
         preprocess_args={'train': True}  # Switch the mode of preprocessing
     )
     load_cv = LoadInputsAndTargets(

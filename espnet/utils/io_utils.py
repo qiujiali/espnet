@@ -36,6 +36,7 @@ class LoadInputsAndTargets(object):
     :param: bool use_second_target: Used for tts mode only
     :param: dict preprocess_args: Set some optional arguments for preprocessing
     :param: Optional[dict] preprocess_args: Used for tts mode only
+    :param: float sample_rate: sample part of the batch to train
     :param: bool rotate: apply Diaconis augmentation
     :param: bool normalise: multiply the sqrt(dim) as global variance 
         normalisation for Diaconis augmentation
@@ -50,6 +51,7 @@ class LoadInputsAndTargets(object):
                  use_second_target=False,
                  preprocess_args=None,
                  keep_all_data_on_mem=False,
+                 sample_rate=1.0,
                  rotate=False,
                  normalise=False
                  ):
@@ -88,6 +90,8 @@ class LoadInputsAndTargets(object):
             self.preprocess_args = dict(preprocess_args)
 
         self.keep_all_data_on_mem = keep_all_data_on_mem
+        self.sample_rate = sample_rate
+        assert self.sample_rate <= 1 and self.sample_rate > 0, "invalid sample rate"
         self.rotate = rotate
         self.normalise = normalise
 
@@ -107,6 +111,12 @@ class LoadInputsAndTargets(object):
         x_feats_dict = OrderedDict()  # OrderedDict[str, List[np.ndarray]]
         y_feats_dict = OrderedDict()  # OrderedDict[str, List[np.ndarray]]
         uttid_list = []  # List[str]
+
+        if self.sample_rate < 1:
+            batch_size = len(batch)
+            sample_size = max(1, int(batch_size * self.sample_rate))
+            sample_idx = np.random.choice(np.arange(batch_size), sample_size, replace=False)
+            batch = [batch[idx] for idx in sample_idx]
 
         for uttid, info in batch:
             uttid_list.append(uttid)
