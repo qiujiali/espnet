@@ -419,10 +419,12 @@ def train(args):
 
     load_tr = LoadInputsAndTargets(
         mode='asr', load_output=True, preprocess_conf=args.preprocess_conf,
+        rotate=args.rotate, normalise=args.normalise,
         preprocess_args={'train': True}  # Switch the mode of preprocessing
     )
     load_cv = LoadInputsAndTargets(
         mode='asr', load_output=True, preprocess_conf=args.preprocess_conf,
+        rotate=False, normalise=args.normalise,
         preprocess_args={'train': False}  # Switch the mode of preprocessing
     )
     # hack to make batchsize argument as 1
@@ -606,7 +608,8 @@ def recog(args):
         mode='asr', load_output=False, sort_in_input_length=False,
         preprocess_conf=train_args.preprocess_conf
         if args.preprocess_conf is None else args.preprocess_conf,
-        preprocess_args={'train': False})
+        preprocess_args={'train': False},
+        rotate=False, normalise=train_args.normalise)
 
     if args.batchsize == 0:
         with torch.no_grad():

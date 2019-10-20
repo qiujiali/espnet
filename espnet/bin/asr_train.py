@@ -287,6 +287,11 @@ def get_parser():
                         help='')
     parser.add_argument('--fbank-fmax', type=float, default=None,
                         help='')
+    # DNC related
+    parser.add_argument('--rotate', type=strtobool, default=False,
+                        help='set to use Diaconis augmentation')
+    parser.add_argument('--normalise', type=strtobool, default=False,
+                        help='set to normalise vectors on unit hypersphere')
     return parser
 
 

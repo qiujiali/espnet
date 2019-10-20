@@ -7,6 +7,7 @@ import h5py
 import kaldiio
 import numpy as np
 import soundfile
+from scipy.stats import special_ortho_group as SO
 
 from espnet.transform.transformation import Transformation
 
@@ -35,6 +36,9 @@ class LoadInputsAndTargets(object):
     :param: bool use_second_target: Used for tts mode only
     :param: dict preprocess_args: Set some optional arguments for preprocessing
     :param: Optional[dict] preprocess_args: Used for tts mode only
+    :param: bool rotate: apply Diaconis augmentation
+    :param: bool normalise: multiply the sqrt(dim) as global variance 
+        normalisation for Diaconis augmentation
     """
 
     def __init__(self, mode='asr',
@@ -46,6 +50,8 @@ class LoadInputsAndTargets(object):
                  use_second_target=False,
                  preprocess_args=None,
                  keep_all_data_on_mem=False,
+                 rotate=False,
+                 normalise=False
                  ):
         self._loaders = {}
         if mode not in ['asr', 'tts', 'mt']:
@@ -82,6 +88,8 @@ class LoadInputsAndTargets(object):
             self.preprocess_args = dict(preprocess_args)
 
         self.keep_all_data_on_mem = keep_all_data_on_mem
+        self.rotate = rotate
+        self.normalise = normalise
 
     def __call__(self, batch):
         """Function to load inputs and targets from list of dicts
@@ -189,6 +197,14 @@ class LoadInputsAndTargets(object):
         """
         # Create a list from the first item
         xs = list(x_feats_dict.values())[0]
+
+        # random rotation
+        if self.rotate:
+            rotation_mat = SO.rvs(xs[0].shape[1])
+            xs = [np.dot(x, rotation_mat) for x in xs]
+        # varaince is 1/n for random distribution on hypersphere
+        if self.normalise:
+            xs = [x * np.sqrt(xs[0].shape[1]) for x in xs]
 
         if self.load_output:
             if len(y_feats_dict) == 1:
