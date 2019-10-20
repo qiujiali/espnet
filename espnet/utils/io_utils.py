@@ -38,8 +38,6 @@ class LoadInputsAndTargets(object):
     :param: Optional[dict] preprocess_args: Used for tts mode only
     :param: float sample_rate: sample part of the batch to train
     :param: bool rotate: apply Diaconis augmentation
-    :param: bool normalise: multiply the sqrt(dim) as global variance 
-        normalisation for Diaconis augmentation
     """
 
     def __init__(self, mode='asr',
@@ -52,8 +50,7 @@ class LoadInputsAndTargets(object):
                  preprocess_args=None,
                  keep_all_data_on_mem=False,
                  sample_rate=1.0,
-                 rotate=False,
-                 normalise=False
+                 rotate=False
                  ):
         self._loaders = {}
         if mode not in ['asr', 'tts', 'mt']:
@@ -93,7 +90,6 @@ class LoadInputsAndTargets(object):
         self.sample_rate = sample_rate
         assert self.sample_rate <= 1 and self.sample_rate > 0, "invalid sample rate"
         self.rotate = rotate
-        self.normalise = normalise
 
     def __call__(self, batch):
         """Function to load inputs and targets from list of dicts
@@ -212,9 +208,6 @@ class LoadInputsAndTargets(object):
         if self.rotate:
             rotation_mat = SO.rvs(xs[0].shape[1])
             xs = [np.dot(x, rotation_mat) for x in xs]
-        # varaince is 1/n for random distribution on hypersphere
-        if self.normalise:
-            xs = [x * np.sqrt(xs[0].shape[1]) for x in xs]
 
         if self.load_output:
             if len(y_feats_dict) == 1:

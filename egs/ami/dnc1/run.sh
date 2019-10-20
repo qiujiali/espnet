@@ -24,7 +24,6 @@ num_speaker=4
 init_model=
 train_sample=0.2
 rotate=true
-normalise=true
 
 # feature configuration
 do_delta=false
@@ -117,7 +116,6 @@ if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then
         --asr-model ${init_model} \
         --train-sample-raste ${train_sample} \
         --rotate ${rotate} \
-        --normalise ${normalise} \
         --seed ${seed} \
         --train-json ${feat_tr_dir}/${js_name}.json \
         --valid-json ${feat_dt_dir}/${js_name}.json \

@@ -3,6 +3,7 @@
 
 # Copyright 2017 Tomoki Hayashi (Nagoya University)
 #  Apache 2.0  (http://www.apache.org/licenses/LICENSE-2.0)
+# Modified by Qiujia Li for DNC
 
 import configargparse
 import logging
@@ -292,8 +293,6 @@ def get_parser():
     # DNC related
     parser.add_argument('--rotate', type=strtobool, default=False,
                         help='set to use Diaconis augmentation')
-    parser.add_argument('--normalise', type=strtobool, default=False,
-                        help='set to normalise vectors on unit hypersphere')
     return parser
 
 

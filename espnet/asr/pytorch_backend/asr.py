@@ -2,7 +2,7 @@
 
 # Copyright 2017 Johns Hopkins University (Shinji Watanabe)
 #  Apache 2.0  (http://www.apache.org/licenses/LICENSE-2.0)
-
+# Modified by Qiujia Li for DNC
 
 import copy
 import json
@@ -420,13 +420,12 @@ def train(args):
 
     load_tr = LoadInputsAndTargets(
         mode='asr', load_output=True, preprocess_conf=args.preprocess_conf,
-        rotate=args.rotate, normalise=args.normalise, sample_rate=args.train_sample_rate,
+        rotate=args.rotate, sample_rate=args.train_sample_rate,
         preprocess_args={'train': True}  # Switch the mode of preprocessing
     )
     load_cv = LoadInputsAndTargets(
         mode='asr', load_output=True, preprocess_conf=args.preprocess_conf,
-        rotate=False, normalise=args.normalise,
-        preprocess_args={'train': False}  # Switch the mode of preprocessing
+        rotate=False, preprocess_args={'train': False}  # Switch the mode of preprocessing
     )
     # hack to make batchsize argument as 1
     # actual bathsize is included in a list
@@ -610,7 +609,7 @@ def recog(args):
         preprocess_conf=train_args.preprocess_conf
         if args.preprocess_conf is None else args.preprocess_conf,
         preprocess_args={'train': False},
-        rotate=False, normalise=train_args.normalise)
+        rotate=False)
 
     if args.batchsize == 0:
         with torch.no_grad():
