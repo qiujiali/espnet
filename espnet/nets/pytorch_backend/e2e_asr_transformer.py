@@ -58,6 +58,8 @@ class E2E(ASRInterface, torch.nn.Module):
                            help='optimizer warmup steps')
         group.add_argument('--transformer-length-normalized-loss', default=True, type=strtobool,
                            help='normalize loss by length')
+        group.add_argument('--transformer-monotonic-local-attention', default=-1, type=int,
+                           help='monotonic local attention for source attention')
         return parser
 
     @property
@@ -88,7 +90,8 @@ class E2E(ASRInterface, torch.nn.Module):
             dropout_rate=args.dropout_rate,
             positional_dropout_rate=args.dropout_rate,
             self_attention_dropout_rate=args.transformer_attn_dropout_rate,
-            src_attention_dropout_rate=args.transformer_attn_dropout_rate
+            src_attention_dropout_rate=args.transformer_attn_dropout_rate,
+            restricted=args.transformer_monotonic_local_attention
         )
         self.sos = odim - 1
         self.eos = odim - 1
@@ -299,6 +302,7 @@ class E2E(ASRInterface, torch.nn.Module):
                 else:
                     local_scores = local_att_scores
 
+                max_local_beam = min(beam, local_scores.shape[1])
                 if lpz is not None:
                     local_best_scores, local_best_ids = torch.topk(
                         local_att_scores, ctc_beam, dim=1)
@@ -309,12 +313,12 @@ class E2E(ASRInterface, torch.nn.Module):
                         + ctc_weight * torch.from_numpy(ctc_scores - hyp['ctc_score_prev'])
                     if rnnlm:
                         local_scores += recog_args.lm_weight * local_lm_scores[:, local_best_ids[0]]
-                    local_best_scores, joint_best_ids = torch.topk(local_scores, beam, dim=1)
+                    local_best_scores, joint_best_ids = torch.topk(local_scores, max_local_beam, dim=1)
                     local_best_ids = local_best_ids[:, joint_best_ids[0]]
                 else:
-                    local_best_scores, local_best_ids = torch.topk(local_scores, beam, dim=1)
+                    local_best_scores, local_best_ids = torch.topk(local_scores, max_local_beam, dim=1)
 
-                for j in six.moves.range(beam):
+                for j in six.moves.range(max_local_beam):
                     new_hyp = {}
                     new_hyp['score'] = hyp['score'] + float(local_best_scores[0, j])
                     new_hyp['yseq'] = [0] * (1 + len(hyp['yseq']))
@@ -326,7 +330,11 @@ class E2E(ASRInterface, torch.nn.Module):
                         new_hyp['ctc_state_prev'] = ctc_states[joint_best_ids[0, j]]
                         new_hyp['ctc_score_prev'] = ctc_scores[joint_best_ids[0, j]]
                     # will be (2 x beam) hyps at most
-                    hyps_best_kept.append(new_hyp)
+                    # if less than minlen, do not append eos
+                    if int(local_best_ids[0, j]) == self.eos and i < minlen:
+                        continue
+                    else:
+                        hyps_best_kept.append(new_hyp)
 
                 hyps_best_kept = sorted(
                     hyps_best_kept, key=lambda x: x['score'], reverse=True)[:beam]
@@ -351,7 +359,7 @@ class E2E(ASRInterface, torch.nn.Module):
                 if hyp['yseq'][-1] == self.eos:
                     # only store the sequence that has more than minlen outputs
                     # also add penalty
-                    if len(hyp['yseq']) > minlen:
+                    if len(hyp['yseq']) >= minlen:
                         hyp['score'] += (i + 1) * penalty
                         if rnnlm:  # Word LM needs to add final <eos> score
                             hyp['score'] += recog_args.lm_weight * rnnlm.final(

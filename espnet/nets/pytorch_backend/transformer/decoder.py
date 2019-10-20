@@ -25,6 +25,10 @@ class Decoder(torch.nn.Module):
     :param bool concat_after: whether to concat attention layer's input and output
         if True, additional linear will be applied. i.e. x -> x + linear(concat(x, att(x)))
         if False, no additional linear will be applied. i.e. x -> x + att(x)
+    :param int restricted: restricted attention for source attention,
+        -1 as the default means no restriction,
+        0 means strictly diagonal attention,
+        positive int means the number of non-restricted diagonals at each side of the main diagonal
     """
 
     def __init__(self, odim,
@@ -40,7 +44,8 @@ class Decoder(torch.nn.Module):
                  use_output_layer=True,
                  pos_enc_class=PositionalEncoding,
                  normalize_before=True,
-                 concat_after=False):
+                 concat_after=False,
+                 restricted=-1):
         super(Decoder, self).__init__()
         if input_layer == "embed":
             self.embed = torch.nn.Sequential(
@@ -68,7 +73,7 @@ class Decoder(torch.nn.Module):
             lambda: DecoderLayer(
                 attention_dim,
                 MultiHeadedAttention(attention_heads, attention_dim, self_attention_dropout_rate),
-                MultiHeadedAttention(attention_heads, attention_dim, src_attention_dropout_rate),
+                MultiHeadedAttention(attention_heads, attention_dim, src_attention_dropout_rate, restricted),
                 PositionwiseFeedForward(attention_dim, linear_units, dropout_rate),
                 dropout_rate,
                 normalize_before,
