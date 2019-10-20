@@ -26,7 +26,6 @@ train_sample=0.2
 rotate=true
 
 # feature configuration
-do_delta=false
 js_name=
 
 train_config=conf/tuning/train_transformer.yaml
@@ -70,10 +69,11 @@ train_dev=${mic}_dev
 train_test=${mic}_eval
 recog_set="${mic}_${decode_set}"
 
-feat_tr_dir=${dumpdir}/${train_set}/delta${do_delta}; mkdir -p ${feat_tr_dir}
-feat_dt_dir=${dumpdir}/${train_dev}/delta${do_delta}; mkdir -p ${feat_dt_dir}
+feat_tr_dir=${dumpdir}/${train_set}/dvector; mkdir -p ${feat_tr_dir}
+feat_dt_dir=${dumpdir}/${train_dev}/dvector; mkdir -p ${feat_dt_dir}
 
 dict=data/lang_1char/${train_set}_units.txt
+mkdir -p data/lang_1char
 if [ ! -f ${dict} ]; then
     for i in `seq 0 $(expr ${num_speaker} - 1)`
     do
@@ -84,9 +84,6 @@ fi
 
 if [ -z ${tag} ]; then
     expname=${train_set}_${backend}_$(basename ${train_config%.*})
-    if ${do_delta}; then
-        expname=${expname}_delta
-    fi
 else
     expname=${train_set}_${backend}_${tag}
 fi
@@ -114,11 +111,11 @@ if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then
         --verbose ${verbose} \
         --resume ${resume} \
         --asr-model ${init_model} \
-        --train-sample-raste ${train_sample} \
+        --train-sample-rate ${train_sample} \
         --rotate ${rotate} \
         --seed ${seed} \
         --train-json ${feat_tr_dir}/${js_name}.json \
-        --valid-json ${feat_dt_dir}/${js_name}.json \
+        --valid-json ${feat_dt_dir}/${js_name}.json 
 fi
 
 if [ ${stage} -le 5 ] && [ ${stop_stage} -ge 5 ]; then
@@ -130,7 +127,7 @@ if [ ${stage} -le 5 ] && [ ${stop_stage} -ge 5 ]; then
     (
         decode_dir=decode_${rtask}_$(basename ${decode_config%.*})
         echo ${decode_dir}
-        feat_recog_dir=${dumpdir}/${rtask}/delta${do_delta}
+        feat_recog_dir=${dumpdir}/${rtask}/dvector
 
         # split data
         splitjson.py --parts ${nj} ${feat_recog_dir}/${js_name}.json
@@ -154,3 +151,4 @@ if [ ${stage} -le 5 ] && [ ${stop_stage} -ge 5 ]; then
     [ ${i} -gt 0 ] && echo "$0: ${i} background jobs are failed." && false
     echo "Finished"
 fi
+
