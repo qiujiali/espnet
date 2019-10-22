@@ -10,7 +10,6 @@ import math
 import torch
 
 from espnet.nets.asr_interface import ASRInterface
-from espnet.nets.pytorch_backend.ctc import CTC
 from espnet.nets.pytorch_backend.e2e_asr import CTC_LOSS_THRESHOLD
 from espnet.nets.pytorch_backend.e2e_asr import Reporter
 from espnet.nets.pytorch_backend.nets_utils import make_pad_mask
@@ -109,6 +108,7 @@ class E2E(ASRInterface, torch.nn.Module):
         self.adim = args.adim
         self.mtlalpha = args.mtlalpha
         if args.mtlalpha > 0.0:
+            from espnet.nets.pytorch_backend.ctc import CTC
             self.ctc = CTC(odim, args.adim, args.dropout_rate, ctc_type=args.ctc_type, reduce=True)
         else:
             self.ctc = None
@@ -261,9 +261,7 @@ class E2E(ASRInterface, torch.nn.Module):
             hyp = {'score': 0.0, 'yseq': [y]}
         if lpz is not None:
             import numpy
-
-            from espnet.nets.ctc_prefix_score import CTCPrefixScore
-
+            from espnet.nets.ctc_prefix_score import CTCPrefixScor
             ctc_prefix_score = CTCPrefixScore(lpz.detach().numpy(), 0, self.eos, numpy)
             hyp['ctc_state_prev'] = ctc_prefix_score.initial_state()
             hyp['ctc_score_prev'] = 0.0
