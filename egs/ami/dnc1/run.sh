@@ -26,7 +26,9 @@ train_sample=0.2
 rotate=true
 
 # feature configuration
-js_name=
+train_json=
+dev_json=
+decode_json=
 
 train_config=conf/tuning/train_transformer.yaml
 decode_config=conf/decode.yaml
@@ -66,7 +68,6 @@ nmics=${mic//[a-z]/} # e.g. 8 for mdm8.
 
 train_set=${mic}_train
 train_dev=${mic}_dev
-train_test=${mic}_eval
 recog_set="${mic}_${decode_set}"
 
 feat_tr_dir=${dumpdir}/${train_set}/dvector; mkdir -p ${feat_tr_dir}
@@ -114,8 +115,8 @@ if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then
         --train-sample-rate ${train_sample} \
         --rotate ${rotate} \
         --seed ${seed} \
-        --train-json ${feat_tr_dir}/${js_name}.json \
-        --valid-json ${feat_dt_dir}/${js_name}.json 
+        --train-json ${train_json} \
+        --valid-json ${dev_json} 
 fi
 
 if [ ${stage} -le 5 ] && [ ${stop_stage} -ge 5 ]; then
@@ -123,14 +124,14 @@ if [ ${stage} -le 5 ] && [ ${stop_stage} -ge 5 ]; then
     nj=16
 
     pids=() # initialize pids
-    for rtask in ${recog_set}; do
     (
-        decode_dir=decode_${rtask}_$(basename ${decode_config%.*})
+        decode_dir=decode_${recog_set}_$(basename ${decode_config%.*})
         echo ${decode_dir}
-        feat_recog_dir=${dumpdir}/${rtask}/dvector
+        feat_recog_dir=${dumpdir}/${recog_set}/dvector
 
         # split data
-        splitjson.py --parts ${nj} ${feat_recog_dir}/${js_name}.json
+        cp ${decode_json} ${feat_recog_dir}/data.json
+        splitjson.py --parts ${nj} ${feat_recog_dir}/data.json
 
         #### use CPU for decoding
         ngpu=0
@@ -146,7 +147,6 @@ if [ ${stage} -le 5 ] && [ ${stop_stage} -ge 5 ]; then
             ${recog_opts}
     ) &
     pids+=($!) # store background pids
-    done
     i=0; for pid in "${pids[@]}"; do wait ${pid} || ((++i)); done
     [ ${i} -gt 0 ] && echo "$0: ${i} background jobs are failed." && false
     echo "Finished"
