@@ -273,7 +273,7 @@ def get_parser():
     # Feature transform: Normalization
     parser.add_argument('--stats-file', type=str, default=None,
                         help='The stats file for the feature normalization')
-    parser.add_argument('--apply-uttmvn', type=strtobool, default=True,
+    parser.add_argument('--apply-uttmvn', type=strtobool, default=False,
                         help='Apply utterance level mean '
                              'variance normalization.')
     parser.add_argument('--uttmvn-norm-means', type=strtobool,
@@ -357,7 +357,7 @@ def main(cmd_args):
             dictionary = f.readlines()
         char_list = [entry.decode('utf-8').split(' ')[0]
                      for entry in dictionary]
-        char_list.insert(0, '<blank>')
+        # char_list.insert(0, '<blank>')
         char_list.append('<eos>')
         args.char_list = char_list
     else:
