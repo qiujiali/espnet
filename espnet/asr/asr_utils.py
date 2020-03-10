@@ -508,7 +508,8 @@ def add_results_to_json(js, nbest_hyps, char_list):
     """
     # copy old json info
     new_js = dict()
-    new_js['utt2spk'] = js['utt2spk']
+    if 'utt2spk' in js:
+        new_js['utt2spk'] = js['utt2spk']
     new_js['output'] = []
 
     for n, hyp in enumerate(nbest_hyps, 1):
