@@ -78,7 +78,7 @@ mkdir -p data/lang_1char
 if [ ! -f ${dict} ]; then
     for i in `seq 0 $(expr ${num_speaker} - 1)`
     do
-        echo "i i" >> ${dict}
+        echo "$i $i" >> ${dict}
     done
 fi
 
@@ -143,8 +143,7 @@ if [ ${stage} -le 5 ] && [ ${stop_stage} -ge 5 ]; then
             --backend ${backend} \
             --recog-json ${feat_recog_dir}/split${nj}utt/data.JOB.json \
             --result-label ${expdir}/${decode_dir}/data.JOB.json \
-            --model ${expdir}/results/${recog_model}  \
-            ${recog_opts}
+            --model ${expdir}/results/${recog_model}
     ) &
     pids+=($!) # store background pids
     i=0; for pid in "${pids[@]}"; do wait ${pid} || ((++i)); done
