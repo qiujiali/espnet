@@ -338,6 +338,10 @@ def train(args):
     if args.mt_model:
         del mt_model
 
+    if args.init_model:
+        logging.info('Initialise model from %s' % args.init_model)
+        torch_load(args.init_model, model)
+
     if args.rnnlm is not None:
         rnnlm_args = get_model_conf(args.rnnlm, args.rnnlm_conf)
         rnnlm = lm_pytorch.ClassifierWithState(

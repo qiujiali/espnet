@@ -111,7 +111,7 @@ if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then
         --minibatches ${N} \
         --verbose ${verbose} \
         --resume ${resume} \
-        --asr-model ${init_model} \
+        --init-model ${init_model} \
         --train-sample-rate ${train_sample} \
         --rotate ${rotate} \
         --seed ${seed} \
