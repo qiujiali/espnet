@@ -21,7 +21,7 @@ resume=        # Resume the training from snapshot
 seed=1
 
 num_speaker=4
-init_model=
+init_model=""
 train_sample=0.2
 rotate=true
 
